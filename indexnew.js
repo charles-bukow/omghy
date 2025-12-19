@@ -874,7 +874,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
   console.log(`🎬 OMG TV Slim running on port ${PORT}`);
   console.log(`🌐 Open http://localhost:${PORT}`);
