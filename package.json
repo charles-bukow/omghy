@@ -1,0 +1,41 @@
+{
+  "name": "omg-tv-slim",
+  "version": "1.0.0",
+  "description": "Lightweight M3U playlist Stremio addon with EPG support",
+  "main": "index2.js",
+  "scripts": {
+    "start": "node index2.js",
+    "dev": "nodemon index2.js",
+    "test": "node index2.js"
+  },
+  "keywords": [
+    "stremio",
+    "addon",
+    "iptv",
+    "m3u",
+    "epg",
+    "streaming"
+  ],
+  "author": "OMG TV",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "stremio-addon-sdk": "^1.6.8",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/omg-tv-slim.git"
+  },
+  "homepage": "https://github.com/yourusername/omg-tv-slim#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/omg-tv-slim/issues"
+  }
+}
