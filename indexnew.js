@@ -30,11 +30,11 @@ const cache = {
 const config = {
   port: process.env.PORT || 10000,
   manifest: {
-    id: 'org.omgtv.slim',
-    version: '1.0.0',
-    name: 'OMG TV Slim',
+    id: 'org.hytv.slim',
+    version: '6.0.0',
+    name: 'HY TV',
     description: 'Lightweight M3U playlist addon with EPG support',
-    logo: 'https://github.com/mik25/OMG-Premium-TV/blob/main/tv.png?raw=true',
+    logo: 'https://raw.githubusercontent.com/charles-bukow/HY-TV/refs/heads/main/tv.png',
     resources: ['stream', 'catalog'],
     types: ['tv'],
     idPrefixes: ['tv'],
@@ -348,7 +348,7 @@ app.get('/', (req, res) => {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OMG TV Slim</title>
+<title>HY TV</title>
 <style>
 * {
   margin: 0;
@@ -574,8 +574,9 @@ button:active {
 </video>
 
 <div class="container">
-  <h1>🎬 OMG TV Slim</h1>
-  <div class="version">Lightweight IPTV Addon v1.0.0</div>
+  <img src="https://raw.githubusercontent.com/charles-bukow/HY-TV/refs/heads/main/tv.png" alt="HY TV Logo" style="width: 200px; margin: 0 auto 20px; display: block;">
+  <h1>HY TV</h1>
+  <div class="version">Lightweight IPTV Addon v6.0.0</div>
   
   <div class="help">
     <strong>📋 Multiple M3U URLs</strong>
@@ -874,9 +875,9 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🎬 OMG TV Slim running on port ${PORT}`);
+  console.log(`🎬 HY TV running on port ${PORT}`);
   console.log(`🌐 Open http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
