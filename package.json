@@ -4,9 +4,9 @@
   "description": "Lightweight M3U playlist Stremio addon with EPG support",
   "main": "index2.js",
   "scripts": {
-    "start": "node index2.js",
-    "dev": "nodemon index2.js",
-    "test": "node index2.js"
+    "start": "node indexnew.js",
+    "dev": "nodemon indexnew.js",
+    "test": "node indexnew.js"
   },
   "keywords": [
     "stremio",
@@ -32,10 +32,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/omg-tv-slim.git"
+    "url": "https://github.com/henrychinaski/omg-tv-slim.git"
   },
-  "homepage": "https://github.com/yourusername/omg-tv-slim#readme",
+  "homepage": "https://github.com/henrychinaski/omg-tv-slim#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/omg-tv-slim/issues"
+    "url": "https://github.com/henrychinaski/omg-tv-slim/issues"
   }
 }
