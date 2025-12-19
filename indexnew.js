@@ -875,7 +875,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
   console.log(`🎬 HY TV running on port ${PORT}`);
   console.log(`🌐 Open http://localhost:${PORT}`);
