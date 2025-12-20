@@ -1,4 +1,63 @@
-const express = require('express');
+// EPG Parser - Optimized with better memory handling
+async function parseEPG(epgUrls) {
+  if (!epgUrls) return null;
+  
+  // Handle multiple EPG URLs separated by commas
+  const urlList = epgUrls.split(',').map(u => u.trim()).filter(u => u.startsWith('http'));
+  
+  if (urlList.length === 0) return null;
+  
+  console.log(`📺 Found ${urlList.length} EPG URL(s) to process`);
+  
+  let combinedEpgData = null;
+  
+  for (let i = 0; i < urlList.length; i++) {
+    const cleanUrl = urlList[i];
+    console.log(`📺 Loading EPG ${i + 1}/${urlList.length} from:`, cleanUrl);
+  
+    try {
+      const headResponse = await axios.head(cleanUrl, { timeout: 10000 }).catch(() => null);
+      const contentLength = headResponse ? parseInt(headResponse.headers['content-length'] || '0') : 0;
+      
+      if (contentLength > 100 * 1024 * 1024) {
+        console.log(`⚠️ EPG ${i + 1} file too large: ${Math.round(contentLength/1024/1024)}MB, skipping`);
+        continue;
+      }
+      
+      if (contentLength > 0) {
+        console.log(`📊 EPG ${i + 1} file size: ${Math.round(contentLength/1024/1024)}MB`);
+      }
+      
+      const response = await axios.get(cleanUrl, { 
+        responseType: 'stream',
+        timeout: 30000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        maxRedirects: 3,
+        validateStatus: (status) => status < 400
+      });
+      
+      const epgData = await new Promise((resolve, reject) => {
+        const chunks = [];
+        let totalSize = 0;
+        const maxSize = 50 * 1024 * 1024;
+        
+        let stream = response.data;
+        
+        if (cleanUrl.endsWith('.gz') || response.headers['content-encoding'] === 'gzip') {
+          console.log(`🗜️ Decompressing EPG ${i + 1}...`);
+          stream = stream.pipe(zlib.createGunzip());
+        }
+        
+        stream.on('data', (chunk) => {
+          totalSize += chunk.length;
+          if (totalSize > maxSize) {
+            console.log(`⚠️ EPG ${i + 1} too large, truncating...`);
+            stream.destroy();
+            return;
+          }
+          chunks.const express = require('express');
 const axios = require('axios');
 const { parseStringPromise } = require('xml2js');
 const zlib = require('zlib');
@@ -23,7 +82,8 @@ const cache = {
   lastUpdate: null,
   m3uUrl: null,
   maxChannels: 10000,
-  epgLastUpdate: null
+  epgLastUpdate: null,
+  lastEpgUrl: null
 };
 
 // Base config
@@ -688,11 +748,13 @@ function copyUrl() {
 
 app.get('/manifest.json', async (req, res) => {
   try {
+    console.log('📋 Manifest request received');
+    console.log('📋 Query params:', JSON.stringify(req.query, null, 2));
+    
     if (!req.query.m3u) {
+      console.log('❌ No M3U URL provided in query');
       return res.status(400).json({ error: 'M3U URL required' });
     }
-    
-    console.log('📋 Query params:', JSON.stringify(req.query, null, 2));
     
     const updateInterval = parseUpdateInterval(req.query.update_interval);
     
@@ -711,8 +773,13 @@ app.get('/manifest.json', async (req, res) => {
     if ((req.query.epg_enabled === 'true' || req.query.epg_enabled === true) && req.query.epg) {
       const epgUpdateInterval = 6 * 60 * 60 * 1000; // EPG refresh every 6 hours
       
-      if (!cache.epgLastUpdate || Date.now() - cache.epgLastUpdate > epgUpdateInterval) {
+      // Force reload if EPG URL changed
+      const epgUrlChanged = cache.lastEpgUrl !== req.query.epg;
+      
+      if (!cache.epgLastUpdate || Date.now() - cache.epgLastUpdate > epgUpdateInterval || epgUrlChanged) {
         console.log('📺 Loading EPG data from:', req.query.epg);
+        cache.lastEpgUrl = req.query.epg;
+        
         try {
           const epgPromise = parseEPG(req.query.epg);
           const timeoutPromise = new Promise((_, reject) => 
@@ -772,6 +839,13 @@ app.get('/manifest.json', async (req, res) => {
 
 app.get('/catalog/:type/:id/:extra?.json', async (req, res) => {
   try {
+    console.log('📺 Catalog request - Total channels in cache:', cache.channels.length);
+    
+    if (cache.channels.length === 0) {
+      console.log('⚠️ WARNING: Cache is empty! Manifest may not have been called yet.');
+      return res.json({ metas: [] });
+    }
+    
     let search, genre, skip = 0;
     
     if (req.params.extra) {
@@ -885,7 +959,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🎬 HY TV running on port ${PORT}`);
   console.log(`🌐 Open http://localhost:${PORT}`);
