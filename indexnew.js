@@ -1,63 +1,4 @@
-// EPG Parser - Optimized with better memory handling
-async function parseEPG(epgUrls) {
-  if (!epgUrls) return null;
-  
-  // Handle multiple EPG URLs separated by commas
-  const urlList = epgUrls.split(',').map(u => u.trim()).filter(u => u.startsWith('http'));
-  
-  if (urlList.length === 0) return null;
-  
-  console.log(`📺 Found ${urlList.length} EPG URL(s) to process`);
-  
-  let combinedEpgData = null;
-  
-  for (let i = 0; i < urlList.length; i++) {
-    const cleanUrl = urlList[i];
-    console.log(`📺 Loading EPG ${i + 1}/${urlList.length} from:`, cleanUrl);
-  
-    try {
-      const headResponse = await axios.head(cleanUrl, { timeout: 10000 }).catch(() => null);
-      const contentLength = headResponse ? parseInt(headResponse.headers['content-length'] || '0') : 0;
-      
-      if (contentLength > 100 * 1024 * 1024) {
-        console.log(`⚠️ EPG ${i + 1} file too large: ${Math.round(contentLength/1024/1024)}MB, skipping`);
-        continue;
-      }
-      
-      if (contentLength > 0) {
-        console.log(`📊 EPG ${i + 1} file size: ${Math.round(contentLength/1024/1024)}MB`);
-      }
-      
-      const response = await axios.get(cleanUrl, { 
-        responseType: 'stream',
-        timeout: 30000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
-        maxRedirects: 3,
-        validateStatus: (status) => status < 400
-      });
-      
-      const epgData = await new Promise((resolve, reject) => {
-        const chunks = [];
-        let totalSize = 0;
-        const maxSize = 50 * 1024 * 1024;
-        
-        let stream = response.data;
-        
-        if (cleanUrl.endsWith('.gz') || response.headers['content-encoding'] === 'gzip') {
-          console.log(`🗜️ Decompressing EPG ${i + 1}...`);
-          stream = stream.pipe(zlib.createGunzip());
-        }
-        
-        stream.on('data', (chunk) => {
-          totalSize += chunk.length;
-          if (totalSize > maxSize) {
-            console.log(`⚠️ EPG ${i + 1} too large, truncating...`);
-            stream.destroy();
-            return;
-          }
-          chunks.const express = require('express');
+const express = require('express');
 const axios = require('axios');
 const { parseStringPromise } = require('xml2js');
 const zlib = require('zlib');
@@ -148,7 +89,7 @@ async function parseM3U(urls) {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         },
-        maxContentLength: 100 * 1024 * 1024, // 100MB limit
+        maxContentLength: 100 * 1024 * 1024,
         maxBodyLength: 100 * 1024 * 1024
       });
       
@@ -210,7 +151,6 @@ async function parseM3U(urls) {
       console.error(`❌ Error parsing M3U ${urlIndex + 1}:`, url.substring(0, 50), error.message);
     }
     
-    // Free memory between sources
     if (global.gc) global.gc();
   }
   
@@ -219,113 +159,130 @@ async function parseM3U(urls) {
 }
 
 // EPG Parser - Optimized with better memory handling
-async function parseEPG(epgUrl) {
-  if (!epgUrl) return null;
+async function parseEPG(epgUrls) {
+  if (!epgUrls) return null;
   
-  let cleanUrl = epgUrl;
-  try {
-    while (cleanUrl.includes('%')) {
-      const newDecoded = decodeURIComponent(cleanUrl);
-      if (newDecoded === cleanUrl) break;
-      cleanUrl = newDecoded;
-    }
-  } catch (e) {
-    console.log('EPG URL decode error:', e.message);
-  }
+  const urlList = epgUrls.split(',').map(u => u.trim()).filter(u => u.startsWith('http'));
   
-  console.log('📺 Loading EPG from:', cleanUrl);
+  if (urlList.length === 0) return null;
   
-  try {
-    const headResponse = await axios.head(cleanUrl, { timeout: 10000 });
-    const contentLength = parseInt(headResponse.headers['content-length'] || '0');
-    
-    if (contentLength > 100 * 1024 * 1024) {
-      console.log(`⚠️ EPG file too large: ${Math.round(contentLength/1024/1024)}MB, skipping`);
-      return null;
-    }
-    
-    console.log(`📊 EPG file size: ${Math.round(contentLength/1024/1024)}MB`);
-    
-    const response = await axios.get(cleanUrl, { 
-      responseType: 'stream',
-      timeout: 30000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      maxRedirects: 3,
-      validateStatus: (status) => status < 400
-    });
-    
-    return new Promise((resolve, reject) => {
-      const chunks = [];
-      let totalSize = 0;
-      const maxSize = 50 * 1024 * 1024; // 50MB max
+  console.log(`📺 Found ${urlList.length} EPG URL(s) to process`);
+  
+  let combinedEpgData = null;
+  
+  for (let i = 0; i < urlList.length; i++) {
+    const cleanUrl = urlList[i];
+    console.log(`📺 Loading EPG ${i + 1}/${urlList.length} from:`, cleanUrl);
+  
+    try {
+      const headResponse = await axios.head(cleanUrl, { timeout: 10000 }).catch(() => null);
+      const contentLength = headResponse ? parseInt(headResponse.headers['content-length'] || '0') : 0;
       
-      let stream = response.data;
-      
-      if (cleanUrl.endsWith('.gz') || response.headers['content-encoding'] === 'gzip') {
-        console.log('🗜️ Streaming gzip decompression...');
-        stream = stream.pipe(zlib.createGunzip());
+      if (contentLength > 100 * 1024 * 1024) {
+        console.log(`⚠️ EPG ${i + 1} file too large: ${Math.round(contentLength/1024/1024)}MB, skipping`);
+        continue;
       }
       
-      stream.on('data', (chunk) => {
-        totalSize += chunk.length;
-        
-        if (totalSize > maxSize) {
-          console.log('⚠️ EPG too large for memory, truncating...');
-          stream.destroy();
-          return;
-        }
-        
-        chunks.push(chunk);
+      if (contentLength > 0) {
+        console.log(`📊 EPG ${i + 1} file size: ${Math.round(contentLength/1024/1024)}MB`);
+      }
+      
+      const response = await axios.get(cleanUrl, { 
+        responseType: 'stream',
+        timeout: 30000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        maxRedirects: 3,
+        validateStatus: (status) => status < 400
       });
       
-      stream.on('end', async () => {
-        try {
-          if (chunks.length === 0) {
-            console.log('❌ No EPG data received');
-            resolve(null);
+      const epgData = await new Promise((resolve, reject) => {
+        const chunks = [];
+        let totalSize = 0;
+        const maxSize = 50 * 1024 * 1024;
+        
+        let stream = response.data;
+        
+        if (cleanUrl.endsWith('.gz') || response.headers['content-encoding'] === 'gzip') {
+          console.log(`🗜️ Decompressing EPG ${i + 1}...`);
+          stream = stream.pipe(zlib.createGunzip());
+        }
+        
+        stream.on('data', (chunk) => {
+          totalSize += chunk.length;
+          if (totalSize > maxSize) {
+            console.log(`⚠️ EPG ${i + 1} too large, truncating...`);
+            stream.destroy();
             return;
           }
-          
-          const xmlContent = Buffer.concat(chunks).toString();
-          console.log('✅ EPG loaded, size:', Math.round(xmlContent.length/1024/1024) + 'MB');
-          
-          const parsed = await parseStringPromise(xmlContent, {
-            trim: true,
-            normalize: true,
-            explicitArray: false,
-            mergeAttrs: true,
-            ignoreAttrs: false
-          });
-          
-          chunks.length = 0;
-          if (global.gc) global.gc();
-          
-          console.log('📊 EPG programmes:', parsed.tv?.programme?.length || 0);
-          resolve(parsed);
-        } catch (parseError) {
-          console.error('❌ EPG parse error:', parseError.message);
+          chunks.push(chunk);
+        });
+        
+        stream.on('end', async () => {
+          try {
+            if (chunks.length === 0) {
+              console.log(`❌ No EPG data received for ${i + 1}`);
+              resolve(null);
+              return;
+            }
+            
+            const xmlContent = Buffer.concat(chunks).toString();
+            console.log(`✅ EPG ${i + 1} loaded, size:`, Math.round(xmlContent.length/1024/1024) + 'MB');
+            
+            const parsed = await parseStringPromise(xmlContent, {
+              trim: true,
+              normalize: true,
+              explicitArray: false,
+              mergeAttrs: true,
+              ignoreAttrs: false
+            });
+            
+            chunks.length = 0;
+            if (global.gc) global.gc();
+            
+            const programCount = Array.isArray(parsed.tv?.programme) ? parsed.tv.programme.length : (parsed.tv?.programme ? 1 : 0);
+            console.log(`📊 EPG ${i + 1} programmes:`, programCount);
+            resolve(parsed);
+          } catch (parseError) {
+            console.error(`❌ EPG ${i + 1} parse error:`, parseError.message);
+            resolve(null);
+          }
+        });
+        
+        stream.on('error', (error) => {
+          console.error(`❌ EPG ${i + 1} stream error:`, error.message);
           resolve(null);
+        });
+        
+        setTimeout(() => {
+          stream.destroy();
+          console.log(`❌ EPG ${i + 1} stream timeout`);
+          resolve(null);
+        }, 45000);
+      });
+      
+      if (epgData) {
+        if (!combinedEpgData) {
+          combinedEpgData = epgData;
+        } else {
+          const existingProgs = Array.isArray(combinedEpgData.tv?.programme) ? combinedEpgData.tv.programme : (combinedEpgData.tv?.programme ? [combinedEpgData.tv.programme] : []);
+          const newProgs = Array.isArray(epgData.tv?.programme) ? epgData.tv.programme : (epgData.tv?.programme ? [epgData.tv.programme] : []);
+          combinedEpgData.tv.programme = [...existingProgs, ...newProgs];
         }
-      });
+      }
       
-      stream.on('error', (error) => {
-        console.error('❌ EPG stream error:', error.message);
-        resolve(null);
-      });
-      
-      setTimeout(() => {
-        stream.destroy();
-        console.log('❌ EPG stream timeout');
-        resolve(null);
-      }, 45000);
-    });
-    
-  } catch (error) {
-    console.error('❌ EPG parse error:', error.message);
-    return null;
+    } catch (error) {
+      console.error(`❌ EPG ${i + 1} parse error:`, error.message);
+    }
   }
+  
+  if (combinedEpgData) {
+    const totalProgs = Array.isArray(combinedEpgData.tv?.programme) ? combinedEpgData.tv.programme.length : (combinedEpgData.tv?.programme ? 1 : 0);
+    console.log(`✅ Combined EPG loaded with ${totalProgs} total programmes`);
+  }
+  
+  return combinedEpgData;
 }
 
 // Get current program
@@ -386,7 +343,7 @@ function getTextContent(element) {
 
 // Parse update interval
 function parseUpdateInterval(intervalStr) {
-  if (!intervalStr) return 2 * 60 * 60 * 1000; // 2 hours default
+  if (!intervalStr) return 2 * 60 * 60 * 1000;
   
   const parts = intervalStr.split(':');
   if (parts.length === 2) {
@@ -695,7 +652,6 @@ button:active {
 </div>
 
 <script>
-// Load stats
 fetch('/health')
   .then(r => r.json())
   .then(data => {
@@ -758,7 +714,6 @@ app.get('/manifest.json', async (req, res) => {
     
     const updateInterval = parseUpdateInterval(req.query.update_interval);
     
-    // Update cache if needed
     if (cache.m3uUrl !== req.query.m3u || !cache.lastUpdate || 
         Date.now() - cache.lastUpdate > updateInterval) {
       console.log('🔄 Updating cache...');
@@ -769,11 +724,8 @@ app.get('/manifest.json', async (req, res) => {
       cache.lastUpdate = Date.now();
     }
     
-    // Load EPG if enabled - with separate caching
     if ((req.query.epg_enabled === 'true' || req.query.epg_enabled === true) && req.query.epg) {
-      const epgUpdateInterval = 6 * 60 * 60 * 1000; // EPG refresh every 6 hours
-      
-      // Force reload if EPG URL changed
+      const epgUpdateInterval = 6 * 60 * 60 * 1000;
       const epgUrlChanged = cache.lastEpgUrl !== req.query.epg;
       
       if (!cache.epgLastUpdate || Date.now() - cache.epgLastUpdate > epgUpdateInterval || epgUrlChanged) {
@@ -945,7 +897,6 @@ app.get('/stream/:type/:id.json', async (req, res) => {
   }
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
