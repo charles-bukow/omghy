@@ -716,12 +716,20 @@ app.get('/manifest.json', async (req, res) => {
         try {
           const epgPromise = parseEPG(req.query.epg);
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('EPG timeout')), 30000)
+            setTimeout(() => reject(new Error('EPG timeout')), 45000)
           );
           
           cache.epgData = await Promise.race([epgPromise, timeoutPromise]);
           cache.epgLastUpdate = Date.now();
-          console.log('✅ EPG loaded successfully');
+          
+          if (cache.epgData) {
+            const programCount = Array.isArray(cache.epgData.tv?.programme) 
+              ? cache.epgData.tv.programme.length 
+              : (cache.epgData.tv?.programme ? 1 : 0);
+            console.log('✅ EPG loaded successfully with', programCount, 'programmes');
+          } else {
+            console.log('⚠️ EPG data is null');
+          }
         } catch (epgError) {
           console.error('❌ EPG loading failed:', epgError.message);
           cache.epgData = null;
@@ -729,6 +737,8 @@ app.get('/manifest.json', async (req, res) => {
       } else {
         console.log('📺 Using cached EPG data');
       }
+    } else {
+      console.log('ℹ️ EPG not enabled or no EPG URL provided');
     }
     
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
@@ -875,7 +885,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🎬 HY TV running on port ${PORT}`);
   console.log(`🌐 Open http://localhost:${PORT}`);
