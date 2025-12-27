@@ -41,8 +41,8 @@ const config = {
     idPrefixes: ['tv'],
     catalogs: [{
       type: 'tv',
-      id: 'omg_tv',
-      name: 'OMG TV',
+      id: 'hy_tv',
+      name: 'HY TV',
       extra: [
         { name: 'genre', isRequired: false, options: [] },
         { name: 'search', isRequired: false },
@@ -646,7 +646,7 @@ button:active {
   </div>
   
   <div class="footer">
-    <p>Addon created by McCoy88f</p>
+    <p>Addon created by HY</p>
     <p><a href="https://github.com/mccoy88f/OMG-Premium-TV" target="_blank">GitHub Repository</a></p>
   </div>
 </div>
