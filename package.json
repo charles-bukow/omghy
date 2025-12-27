@@ -2,7 +2,7 @@
   "name": "omg-tv-slim",
   "version": "1.0.0",
   "description": "Lightweight M3U playlist Stremio addon with EPG support",
-  "main": "index2.js",
+  "main": "indexnew.js",
   "scripts": {
     "start": "node indexnew.js",
     "dev": "nodemon indexnew.js",
@@ -16,7 +16,7 @@
     "epg",
     "streaming"
   ],
-  "author": "OMG TV",
+  "author": "HY TV",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
