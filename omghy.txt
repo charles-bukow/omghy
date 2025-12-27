@@ -1,0 +1,42 @@
+FROM debian:12.5-slim
+
+EXPOSE 80
+WORKDIR /home
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    git \
+    python3 \
+    python3-pip \
+    unzip \
+    && pip3 install requests --break-system-packages \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fSL -o node.tar.gz https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-x64.tar.gz \
+    && mkdir -p /usr/local/nodejs \
+    && tar -xzf node.tar.gz -C /usr/local/nodejs --strip-components=1 \
+    && rm node.tar.gz \
+    && ln -s /usr/local/nodejs/bin/node /usr/local/bin/node \
+    && ln -s /usr/local/nodejs/bin/npm /usr/local/bin/npm
+
+# Download HY-TV app from GitHub
+RUN curl -L -o hytv.zip https://github.com/charles-bukow/omghy/archive/refs/heads/main.zip \
+    && unzip hytv.zip && rm hytv.zip \
+    && mv omghy-main/* . && rm -rf omghy-main
+
+# Install app dependencies
+RUN npm install
+
+# Create necessary directories with permissions
+RUN mkdir -p data/cache log public src routes temp && \
+    chmod -R 777 data log temp
+
+# Set environment variables
+ENV NODE_ENV=production
+
+# Start the application
+CMD ["node", "indexnew.js"]
