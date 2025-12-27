@@ -32,7 +32,7 @@ const config = {
   manifest: {
     id: 'org.omgtv.slim',
     version: '1.0.0',
-    name: 'OMG TV Slim',
+    name: 'OMG HY TV Slim',
     description: 'Lightweight M3U playlist addon with EPG support',
     logo: 'https://github.com/mik25/OMG-Premium-TV/blob/main/tv.png?raw=true',
     resources: ['stream', 'catalog'],
@@ -41,7 +41,7 @@ const config = {
     catalogs: [{
       type: 'tv',
       id: 'omg_tv',
-      name: 'OMG TV',
+      name: 'OMG HY TV',
       extra: [
         { name: 'genre', isRequired: false, options: [] },
         { name: 'search', isRequired: false },
