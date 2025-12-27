@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: omg-tv-slim
+    env: docker
+    region: oregon # or frankfurt, singapore, ohio
+    plan: free # or starter/standard for better performance
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health
+    autoDeploy: true
